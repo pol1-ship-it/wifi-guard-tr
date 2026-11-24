@@ -1,0 +1,4 @@
+
+# Release signing keys
+keystore/
+*.jks
