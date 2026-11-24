@@ -2,20 +2,20 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#080d18">
-<title>WiFi Guard TR</title>
+<title>WiFi Guard</title>
+
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;background:#080d18;color:#eef4ff;
- font-family:Arial,sans-serif;padding:20px;
+ margin:0;padding:20px;background:#080d18;color:#eef4ff;
+ font-family:Arial,sans-serif
 }
 .header{display:flex;align-items:center;gap:12px;margin:10px 0 25px}
 .logo{
- width:48px;height:48px;border-radius:15px;
- background:#1677ff;display:grid;place-items:center;font-size:25px
+ width:48px;height:48px;border-radius:15px;background:#1677ff;
+ display:grid;place-items:center;font-size:25px
 }
 h1{font-size:22px;margin:0}
 .sub{color:#91a4c3;font-size:12px;margin-top:5px}
@@ -24,88 +24,140 @@ h1{font-size:22px;margin:0}
  padding:18px;border-radius:18px;margin-bottom:15px
 }
 .label{font-size:12px;color:#93a8c8}
-.value{font-size:23px;font-weight:bold;margin:8px 0}
-.blue{color:#48a5ff}
+.value{font-size:22px;font-weight:bold;margin:10px 0}
 .green{color:#40e0a0}
+.red{color:#ff6378}
+.blue{color:#48a5ff}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-button{
- border:1px solid #263955;background:#14243b;color:white;
- border-radius:15px;padding:17px;text-align:left;
- font-size:15px;width:100%;cursor:pointer
+.stat{
+ background:#0c1627;border:1px solid #243751;
+ border-radius:14px;padding:14px;min-height:90px
 }
-button:active{background:#1e3c65}
-.icon{font-size:23px;margin-bottom:12px}
-button small{display:block;color:#91a4c3;margin-top:7px}
-.bar{height:7px;background:#23344c;border-radius:10px;margin-top:12px}
-.fill{height:100%;width:90%;background:#28d89b;border-radius:10px}
-.status{color:#40e0a0;font-size:13px}
-#info{margin-top:12px;line-height:1.6;font-size:14px;color:#c7d6ee}
+.stat .label{font-size:11px}
+.stat .value{font-size:17px;word-break:break-word}
+button{
+ border:1px solid #263955;background:#1677ff;color:white;
+ border-radius:14px;padding:16px;width:100%;
+ font-size:15px;font-weight:bold;margin-top:15px
+}
+.bar{height:8px;background:#23344c;border-radius:10px;margin-top:12px}
+.fill{height:100%;width:0;background:#28d89b;border-radius:10px;transition:.3s}
+#message{font-size:13px;color:#91a4c3;line-height:1.6;margin-top:12px}
 .footer{text-align:center;color:#60728f;font-size:11px;margin-top:25px}
 </style>
 </head>
-<body>
 
+<body>
 <div class="header">
  <div class="logo">🛡️</div>
  <div>
-  <h1>WiFi Guard TR</h1>
-  <div class="sub">Wi-Fi ağ analiz ve güvenlik</div>
+  <h1>WiFi Guard</h1>
+  <div class="sub">Gerçek Wi-Fi bağlantı analizi</div>
  </div>
 </div>
 
 <div class="card">
- <div class="label">AĞ DURUMU</div>
- <div class="value green">● Bağlantı aktif</div>
- <div class="sub">Demo arayüz — canlı bilgiler henüz bağlanmadı</div>
+ <div class="label">BAĞLANTI DURUMU</div>
+ <div id="connection" class="value">Kontrol ediliyor...</div>
+ <div id="ssid" class="sub">Wi-Fi bilgileri bekleniyor</div>
 </div>
 
 <div class="card">
- <div class="label">Wi-Fi SİNYALİ</div>
- <div class="value blue">Güçlü</div>
- <div class="sub">Örnek sinyal seviyesi: -43 dBm</div>
- <div class="bar"><div class="fill"></div></div>
+ <div class="label">SİNYAL GÜCÜ</div>
+ <div id="signal" class="value blue">--</div>
+ <div class="bar"><div id="signalBar" class="fill"></div></div>
+ <div id="rssi" class="sub">RSSI: -- dBm</div>
 </div>
 
 <div class="grid">
- <button onclick="showInfo('Ağ analizi','Wi-Fi adı, frekans, kanal ve sinyal bilgileri burada gösterilecek.')">
-  <div class="icon">📡</div>
-  Ağ Analizi
-  <small>SSID · Kanal · Frekans</small>
- </button>
-
- <button onclick="showInfo('Cihaz keşfi','Kendi yerel ağındaki cihazları keşfetme özelliğini sonraki sürümde ekleyeceğiz.')">
-  <div class="icon">📱</div>
-  Cihazlar
-  <small>Yerel ağ keşfi</small>
- </button>
-
- <button onclick="showInfo('Şifre güvenliği','Kendi Wi-Fi parolanı analiz ederek güvenliğini değerlendirebilirsin.')">
-  <div class="icon">🔐</div>
-  Şifre güvenliği
-  <small>Parola güç analizi</small>
- </button>
-
- <button onclick="showInfo('Modem güvenliği','WPS, WPA2/WPA3, yönetici parolası ve güvenlik kontrolleri.')">
-  <div class="icon">⚙️</div>
-  Modem kontrolü
-  <small>Güvenlik denetimi</small>
- </button>
+ <div class="stat">
+  <div class="label">IP ADRESİ</div>
+  <div id="ip" class="value">--</div>
+ </div>
+ <div class="stat">
+  <div class="label">FREKANS</div>
+  <div id="frequency" class="value">--</div>
+ </div>
+ <div class="stat">
+  <div class="label">BAĞLANTI HIZI</div>
+  <div id="speed" class="value">--</div>
+ </div>
+ <div class="stat">
+  <div class="label">WI-FI DURUMU</div>
+  <div id="wifiEnabled" class="value">--</div>
+ </div>
 </div>
+
+<button onclick="refreshWifi()">🔄 Bilgileri Yenile</button>
 
 <div class="card" style="margin-top:15px">
- <div class="label">GÜVENLİK DURUMU</div>
- <div class="value green">Koruma merkezi</div>
- <div class="status">✓ Güvenlik araçları hazırlandı</div>
- <div id="info">Başlamak için yukarıdaki özelliklerden birine dokun.</div>
+ <div class="label">ANALİZ</div>
+ <div id="message">Wi-Fi bilgileri okunuyor...</div>
 </div>
 
-<div class="footer">WiFi Guard TR · Sürüm 0.1 · Yerel ağ güvenliği</div>
+<div class="footer">WiFi Guard · Live Network Info</div>
 
 <script>
-function showInfo(title,text){
- document.getElementById('info').innerHTML=
- '<b>'+title+'</b><br>'+text;
+function refreshWifi(){
+ if(!window.AndroidWifi){
+  document.getElementById('message').innerText=
+   'Android bağlantısı kurulamadı.';
+  return;
+ }
+
+ try{
+  const data=JSON.parse(AndroidWifi.getWifiInfo());
+
+  document.getElementById('wifiEnabled').innerText=
+   data.wifiEnabled?'Açık':'Kapalı';
+
+  if(!data.connected){
+   document.getElementById('connection').innerText='● Bağlı değil';
+   document.getElementById('connection').className='value red';
+   document.getElementById('ssid').innerText='Wi-Fi ağına bağlı değilsin';
+   document.getElementById('signal').innerText='--';
+   document.getElementById('rssi').innerText='RSSI: -- dBm';
+   document.getElementById('signalBar').style.width='0%';
+   document.getElementById('ip').innerText='--';
+   document.getElementById('frequency').innerText='--';
+   document.getElementById('speed').innerText='--';
+   document.getElementById('message').innerText=
+    'Wi-Fi bağlantısı kurulduğunda ağ bilgileri burada görünecek.';
+   return;
+  }
+
+  document.getElementById('connection').innerText='● Bağlantı aktif';
+  document.getElementById('connection').className='value green';
+  document.getElementById('ssid').innerText='Ağ: '+(data.ssid||'Bilinmiyor');
+
+  const level=data.signalLevel||0;
+  const rssi=data.rssi||-100;
+
+  let quality='Zayıf';
+  if(level>=4)quality='Çok güçlü';
+  else if(level>=3)quality='Güçlü';
+  else if(level>=2)quality='Orta';
+
+  document.getElementById('signal').innerText=quality;
+  document.getElementById('rssi').innerText='RSSI: '+rssi+' dBm';
+  document.getElementById('signalBar').style.width=(level*20)+'%';
+  document.getElementById('ip').innerText=data.ip||'Bilinmiyor';
+
+  document.getElementById('frequency').innerText=
+   data.frequency ? (data.frequency/1000).toFixed(2)+' GHz':'--';
+
+  document.getElementById('speed').innerText=
+   data.linkSpeed ? data.linkSpeed+' Mbps':'--';
+
+  document.getElementById('message').innerText=
+   'Wi-Fi bağlantın aktif. Bilgiler Android cihazından canlı olarak alınıyor.';
+
+ }catch(e){
+  document.getElementById('message').innerText='Hata: '+e;
+ }
 }
+
+setTimeout(refreshWifi,1000);
 </script>
 </body>
 </html>
