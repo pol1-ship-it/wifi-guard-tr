@@ -1,0 +1,11 @@
+{
+  "name": "WiFi Guard TR",
+  "short_name": "WiFi Guard",
+  "description": "Wi-Fi ağ analiz ve güvenlik aracı",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#080d18",
+  "theme_color": "#080d18",
+  "orientation": "portrait",
+  "icons": []
+}

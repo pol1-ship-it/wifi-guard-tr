@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#080d18">
+<title>WiFi Guard TR</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#080d18;color:#eef4ff;
+ font-family:Arial,sans-serif;padding:20px;
+}
+.header{display:flex;align-items:center;gap:12px;margin:10px 0 25px}
+.logo{
+ width:48px;height:48px;border-radius:15px;
+ background:#1677ff;display:grid;place-items:center;font-size:25px
+}
+h1{font-size:22px;margin:0}
+.sub{color:#91a4c3;font-size:12px;margin-top:5px}
+.card{
+ background:#111b2d;border:1px solid #23344e;
+ padding:18px;border-radius:18px;margin-bottom:15px
+}
+.label{font-size:12px;color:#93a8c8}
+.value{font-size:23px;font-weight:bold;margin:8px 0}
+.blue{color:#48a5ff}
+.green{color:#40e0a0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{
+ border:1px solid #263955;background:#14243b;color:white;
+ border-radius:15px;padding:17px;text-align:left;
+ font-size:15px;width:100%;cursor:pointer
+}
+button:active{background:#1e3c65}
+.icon{font-size:23px;margin-bottom:12px}
+button small{display:block;color:#91a4c3;margin-top:7px}
+.bar{height:7px;background:#23344c;border-radius:10px;margin-top:12px}
+.fill{height:100%;width:90%;background:#28d89b;border-radius:10px}
+.status{color:#40e0a0;font-size:13px}
+#info{margin-top:12px;line-height:1.6;font-size:14px;color:#c7d6ee}
+.footer{text-align:center;color:#60728f;font-size:11px;margin-top:25px}
+</style>
+</head>
+<body>
+
+<div class="header">
+ <div class="logo">🛡️</div>
+ <div>
+  <h1>WiFi Guard TR</h1>
+  <div class="sub">Wi-Fi ağ analiz ve güvenlik</div>
+ </div>
+</div>
+
+<div class="card">
+ <div class="label">AĞ DURUMU</div>
+ <div class="value green">● Bağlantı aktif</div>
+ <div class="sub">Demo arayüz — canlı bilgiler henüz bağlanmadı</div>
+</div>
+
+<div class="card">
+ <div class="label">Wi-Fi SİNYALİ</div>
+ <div class="value blue">Güçlü</div>
+ <div class="sub">Örnek sinyal seviyesi: -43 dBm</div>
+ <div class="bar"><div class="fill"></div></div>
+</div>
+
+<div class="grid">
+ <button onclick="showInfo('Ağ analizi','Wi-Fi adı, frekans, kanal ve sinyal bilgileri burada gösterilecek.')">
+  <div class="icon">📡</div>
+  Ağ Analizi
+  <small>SSID · Kanal · Frekans</small>
+ </button>
+
+ <button onclick="showInfo('Cihaz keşfi','Kendi yerel ağındaki cihazları keşfetme özelliğini sonraki sürümde ekleyeceğiz.')">
+  <div class="icon">📱</div>
+  Cihazlar
+  <small>Yerel ağ keşfi</small>
+ </button>
+
+ <button onclick="showInfo('Şifre güvenliği','Kendi Wi-Fi parolanı analiz ederek güvenliğini değerlendirebilirsin.')">
+  <div class="icon">🔐</div>
+  Şifre güvenliği
+  <small>Parola güç analizi</small>
+ </button>
+
+ <button onclick="showInfo('Modem güvenliği','WPS, WPA2/WPA3, yönetici parolası ve güvenlik kontrolleri.')">
+  <div class="icon">⚙️</div>
+  Modem kontrolü
+  <small>Güvenlik denetimi</small>
+ </button>
+</div>
+
+<div class="card" style="margin-top:15px">
+ <div class="label">GÜVENLİK DURUMU</div>
+ <div class="value green">Koruma merkezi</div>
+ <div class="status">✓ Güvenlik araçları hazırlandı</div>
+ <div id="info">Başlamak için yukarıdaki özelliklerden birine dokun.</div>
+</div>
+
+<div class="footer">WiFi Guard TR · Sürüm 0.1 · Yerel ağ güvenliği</div>
+
+<script>
+function showInfo(title,text){
+ document.getElementById('info').innerHTML=
+ '<b>'+title+'</b><br>'+text;
+}
+</script>
+</body>
+</html>
