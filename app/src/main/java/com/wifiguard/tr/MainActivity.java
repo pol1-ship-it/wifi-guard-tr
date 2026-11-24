@@ -55,9 +55,11 @@ public class MainActivity extends Activity {
     private TextView statusText;
     private Button actionButton;
     private File pendingApk;
+    private long pendingVersionCode = -1;
 
     private boolean installRequested = false;
     private boolean installerLaunched = false;
+    private boolean waitingForInstallPermission = false;
     private boolean appOpened = false;
 
     private final Handler mainHandler =
@@ -183,6 +185,7 @@ public class MainActivity extends Activity {
             }
 
             pendingApk = apk;
+            pendingVersionCode = latestVersion;
 
             mainHandler.post(() -> {
                 showUpdateScreen(
@@ -382,6 +385,8 @@ public class MainActivity extends Activity {
             actionButton.setText("YÜKLEME İZNİNİ AÇ");
 
             actionButton.setOnClickListener(v -> {
+                waitingForInstallPermission = true;
+
                 Intent intent = new Intent(
                     android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                     Uri.parse("package:" + getPackageName()));
@@ -399,9 +404,15 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        if (installRequested &&
-            pendingApk != null &&
-            !installerLaunched) {
+        if (!installRequested || pendingApk == null) return;
+
+        if (isPendingUpdateInstalled()) {
+            finishSuccessfulInstallation();
+            return;
+        }
+
+        if (waitingForInstallPermission) {
+            waitingForInstallPermission = false;
 
             if (Build.VERSION.SDK_INT < 26 ||
                 getPackageManager().canRequestPackageInstalls()) {
@@ -436,16 +447,50 @@ public class MainActivity extends Activity {
         }
     }
 
+    private boolean isPendingUpdateInstalled() {
+        if (pendingVersionCode <= 0) return false;
+
+        try {
+            PackageInfo installed =
+                getPackageManager().getPackageInfo(
+                    getPackageName(), 0);
+
+            long installedVersion;
+
+            if (Build.VERSION.SDK_INT >= 28) {
+                installedVersion = installed.getLongVersionCode();
+            } else {
+                installedVersion = installed.versionCode;
+            }
+
+            return installedVersion >= pendingVersionCode;
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void finishSuccessfulInstallation() {
+        pendingApk = null;
+        pendingVersionCode = -1;
+        installRequested = false;
+        installerLaunched = false;
+
+        openMainApp();
+    }
+
     @Override
     protected void onActivityResult(
         int requestCode, int resultCode, Intent data) {
 
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == 500) {
+        if (requestCode == 500 && pendingApk != null) {
             installerLaunched = false;
 
-            if (pendingApk != null) {
+            if (isPendingUpdateInstalled()) {
+                finishSuccessfulInstallation();
+            } else {
                 showUpdateScreen(
                     "Güncelleme henüz tamamlanmadı.\n" +
                     "Devam etmek için güncellemeyi yüklemelisin.");

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" dir="ltr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,19 +13,24 @@ body{
  background:radial-gradient(ellipse at top,#102849 0%,#080f1e 48%,#050914 100%);
  color:#edf5ff;font-family:Arial,sans-serif;
 }
-.header{display:flex;align-items:center;gap:14px;margin:8px 0 26px}
+.header{display:flex;align-items:center;gap:12px;margin:8px 0 26px}
 .logo{
  width:58px;height:58px;border-radius:19px;
  display:grid;place-items:center;
  background:linear-gradient(145deg,#087cff,#04d9c0);
- box-shadow:0 0 28px #008cff66;font-size:31px;
+ box-shadow:0 0 28px #008cff66;font-size:31px;flex-shrink:0;
 }
-h1{font-size:23px;margin:0;font-weight:800}
+h1{font-size:21px;margin:0;font-weight:800}
 .sub{color:#8fa7c7;font-size:12px;margin-top:5px}
+.header-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .tag{
- margin-left:auto;background:#102b35;color:#42e8b0;
- border:1px solid #1c765d;border-radius:20px;
- padding:7px 10px;font-size:10px;font-weight:bold;
+ background:#102b35;color:#42e8b0;border:1px solid #1c765d;
+ border-radius:20px;padding:6px 10px;font-size:10px;font-weight:bold;
+}
+#language{
+ max-width:115px;background:#14243a;color:#edf5ff;
+ border:1px solid #315273;border-radius:10px;padding:8px 6px;
+ font-size:12px;outline:none;
 }
 .hero{
  position:relative;overflow:hidden;text-align:center;
@@ -49,22 +54,18 @@ h1{font-size:23px;margin:0;font-weight:800}
  color:#48f0b0;padding:10px 17px;border-radius:30px;
  margin-top:17px;font-size:13px;font-weight:bold;
 }
-.dot{width:8px;height:8px;border-radius:50%;background:#35efad;box-shadow:0 0 10px #35efad}
+.dot{width:8px;height:8px;border-radius:50%;background:#35efad;box-shadow:0 0 10px #35efad;flex-shrink:0}
 .card{
  background:linear-gradient(145deg,#111f34,#0b1627);
  border:1px solid #243c59;border-radius:19px;
- padding:18px;margin-bottom:14px;
- box-shadow:0 8px 22px #0003;
+ padding:18px;margin-bottom:14px;box-shadow:0 8px 22px #0003;
 }
-.card-title{
- color:#8ca9ca;font-size:11px;font-weight:bold;
- letter-spacing:1.3px;margin-bottom:15px;
-}
+.card-title{color:#8ca9ca;font-size:11px;font-weight:bold;letter-spacing:1.3px;margin-bottom:15px}
 .network{display:flex;align-items:center;gap:13px}
 .network-icon{
  width:48px;height:48px;border-radius:15px;
  display:grid;place-items:center;background:#102e50;
- font-size:25px;color:#36c9ff;
+ font-size:25px;color:#36c9ff;flex-shrink:0;
 }
 .network-name{font-size:17px;font-weight:bold;word-break:break-word}
 .network-label{font-size:11px;color:#8da7c8;margin-bottom:5px}
@@ -79,8 +80,7 @@ h1{font-size:23px;margin:0;font-weight:800}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 .stat{
  background:linear-gradient(145deg,#14243a,#0d192a);
- border:1px solid #263c57;border-radius:17px;
- padding:15px;min-height:112px;
+ border:1px solid #263c57;border-radius:17px;padding:15px;min-height:112px;
 }
 .stat-icon{font-size:22px;margin-bottom:12px}
 .label{font-size:10px;color:#8ca5c5;letter-spacing:.7px}
@@ -97,6 +97,8 @@ button{
 button:active{transform:scale(.98)}
 #message{font-size:13px;color:#b2c5df;line-height:1.7}
 .footer{text-align:center;color:#607795;font-size:11px;margin-top:22px}
+[dir="rtl"] .header-right{margin-left:0;margin-right:auto;align-items:flex-start}
+[dir="rtl"] .card-title,[dir="rtl"] .label{text-align:right}
 </style>
 </head>
 
@@ -105,27 +107,37 @@ button:active{transform:scale(.98)}
  <div class="logo">🛡️</div>
  <div>
   <h1>WiFi Guard TR</h1>
-  <div class="sub">Akıllı Wi-Fi kontrol merkezi</div>
+  <div class="sub" data-i18n="subtitle">Akıllı Wi-Fi kontrol merkezi</div>
  </div>
- <div class="tag">● CANLI</div>
+ <div class="header-right">
+  <div class="tag" data-i18n="live">● CANLI</div>
+  <select id="language" aria-label="Language">
+   <option value="tr">🇹🇷 Türkçe</option>
+   <option value="en">🇬🇧 English</option>
+   <option value="de">🇩🇪 Deutsch</option>
+   <option value="fr">🇫🇷 Français</option>
+   <option value="es">🇪🇸 Español</option>
+   <option value="ar">🇸🇦 العربية</option>
+  </select>
+ </div>
 </div>
 
 <div class="hero">
  <div class="shield">🛡️</div>
- <div class="hero-title">Bağlantın Kontrol Altında</div>
- <div class="hero-sub">Wi-Fi ağının anlık bağlantı bilgileri</div>
+ <div class="hero-title" data-i18n="heroTitle">Bağlantın Kontrol Altında</div>
+ <div class="hero-sub" data-i18n="heroSub">Wi-Fi ağının anlık bağlantı bilgileri</div>
  <div class="status" id="connection">
-  <span class="dot"></span> Kontrol ediliyor...
+  <span class="dot"></span><span data-i18n="checking">Kontrol ediliyor...</span>
  </div>
 </div>
 
 <div class="card">
- <div class="card-title">📡 AKTİF AĞ</div>
+ <div class="card-title" data-i18n="activeNetwork">📡 AKTİF AĞ</div>
  <div class="network">
   <div class="network-icon">◉</div>
   <div>
-   <div class="network-label">Wi-Fi adı (SSID)</div>
-   <div class="network-name" id="ssid">Bilgi bekleniyor...</div>
+   <div class="network-label" data-i18n="ssidLabel">Wi-Fi adı (SSID)</div>
+   <div class="network-name" id="ssid" data-i18n="waiting">Bilgi bekleniyor...</div>
   </div>
  </div>
 </div>
@@ -133,7 +145,7 @@ button:active{transform:scale(.98)}
 <div class="card">
  <div class="signal-head">
   <div>
-   <div class="card-title" style="margin-bottom:7px">SİNYAL KALİTESİ</div>
+   <div class="card-title" style="margin-bottom:7px" data-i18n="signalTitle">SİNYAL KALİTESİ</div>
    <div class="signal-value" id="signal">--</div>
   </div>
   <div style="font-size:30px">📶</div>
@@ -143,102 +155,250 @@ button:active{transform:scale(.98)}
 </div>
 
 <div class="card">
- <div class="card-title">📊 BAĞLANTI DETAYLARI</div>
+ <div class="card-title" data-i18n="details">📊 BAĞLANTI DETAYLARI</div>
  <div class="grid">
   <div class="stat">
    <div class="stat-icon">🌐</div>
-   <div class="label">IP ADRESİ</div>
+   <div class="label" data-i18n="ipLabel">IP ADRESİ</div>
    <div id="ip" class="value blue">--</div>
   </div>
   <div class="stat">
    <div class="stat-icon">📡</div>
-   <div class="label">FREKANS</div>
+   <div class="label" data-i18n="frequency">FREKANS</div>
    <div id="frequency" class="value blue">--</div>
   </div>
   <div class="stat">
    <div class="stat-icon">⚡</div>
-   <div class="label">BAĞLANTI HIZI</div>
+   <div class="label" data-i18n="speed">BAĞLANTI HIZI</div>
    <div id="speed" class="value green">--</div>
   </div>
   <div class="stat">
    <div class="stat-icon">🔌</div>
-   <div class="label">WI-FI DURUMU</div>
+   <div class="label" data-i18n="wifiStatus">WI-FI DURUMU</div>
    <div id="wifiEnabled" class="value green">--</div>
   </div>
  </div>
 </div>
 
-<button onclick="refreshWifi()">↻　BAĞLANTIYI YENİLE</button>
+<button onclick="refreshWifi()" data-i18n="refresh">↻　BAĞLANTIYI YENİLE</button>
 
 <div class="card">
- <div class="card-title">🛡️ AKILLI ANALİZ</div>
+ <div class="card-title" data-i18n="analysis">🛡️ AKILLI ANALİZ</div>
  <div id="message">Wi-Fi bilgileri okunuyor...</div>
 </div>
 
-<div class="footer">WiFi Guard TR · Güvende Kalın</div>
+<div class="footer" data-i18n="footer">WiFi Guard TR · Güvende Kalın</div>
 
 <script>
+const translations = {
+tr:{
+ subtitle:"Akıllı Wi-Fi kontrol merkezi",live:"● CANLI",
+ heroTitle:"Bağlantın Kontrol Altında",heroSub:"Wi-Fi ağının anlık bağlantı bilgileri",
+ checking:"Kontrol ediliyor...",activeNetwork:"📡 AKTİF AĞ",
+ ssidLabel:"Wi-Fi adı (SSID)",ssidPermission:"SSID izni gerekli",waiting:"Bilgi bekleniyor...",
+ signalTitle:"SİNYAL KALİTESİ",details:"📊 BAĞLANTI DETAYLARI",
+ ipLabel:"IP ADRESİ",frequency:"FREKANS",speed:"BAĞLANTI HIZI",
+ wifiStatus:"WI-FI DURUMU",refresh:"↻　BAĞLANTIYI YENİLE",
+ analysis:"🛡️ AKILLI ANALİZ",footer:"WiFi Guard TR · Güvende Kalın",
+ noBridge:"Android bağlantısı kurulamadı.",off:"Kapalı",on:"Açık",
+ disconnected:"Bağlı değil",noWifi:"Wi-Fi ağına bağlı değilsin",
+ waitingWifi:"Wi-Fi bilgileri okunuyor...",
+ disconnectedMessage:"Wi-Fi bağlantısı kurulduğunda ağ bilgileri burada görünecek.",
+ active:"Bağlantı aktif",unknown:"Bilinmiyor",weak:"Zayıf",medium:"Orta",
+ strong:"Güçlü",veryStrong:"Çok güçlü",
+ connectedMessage:"Bağlantın aktif. Wi-Fi bilgileri Android cihazından canlı olarak alınıyor. Sinyal kalitesi: ",
+ readError:"Bilgi okunamadı: "
+},
+en:{
+ subtitle:"Smart Wi-Fi Control Center",live:"● LIVE",
+ heroTitle:"Your Connection Is Protected",heroSub:"Real-time Wi-Fi connection information",
+ checking:"Checking...",activeNetwork:"📡 ACTIVE NETWORK",
+ ssidLabel:"Wi-Fi name (SSID)",ssidPermission:"SSID permission required",waiting:"Waiting for information...",
+ signalTitle:"SIGNAL QUALITY",details:"📊 CONNECTION DETAILS",
+ ipLabel:"IP ADDRESS",frequency:"FREQUENCY",speed:"CONNECTION SPEED",
+ wifiStatus:"WI-FI STATUS",refresh:"↻　REFRESH CONNECTION",
+ analysis:"🛡️ SMART ANALYSIS",footer:"WiFi Guard TR · Stay Protected",
+ noBridge:"Android connection could not be established.",off:"Off",on:"On",
+ disconnected:"Disconnected",noWifi:"You are not connected to Wi-Fi",
+ waitingWifi:"Reading Wi-Fi information...",
+ disconnectedMessage:"Network information will appear here when Wi-Fi is connected.",
+ active:"Connection active",unknown:"Unknown",weak:"Weak",medium:"Medium",
+ strong:"Strong",veryStrong:"Very strong",
+ connectedMessage:"Your connection is active. Wi-Fi information is being received live from your Android device. Signal quality: ",
+ readError:"Could not read information: "
+},
+de:{
+ subtitle:"Intelligentes WLAN-Kontrollzentrum",live:"● LIVE",
+ heroTitle:"Deine Verbindung ist geschützt",heroSub:"WLAN-Verbindungsinformationen in Echtzeit",
+ checking:"Wird überprüft...",activeNetwork:"📡 AKTIVES NETZWERK",
+ ssidLabel:"WLAN-Name (SSID)",ssidPermission:"SSID-Berechtigung erforderlich",waiting:"Warte auf Informationen...",
+ signalTitle:"SIGNALQUALITÄT",details:"📊 VERBINDUNGSDETAILS",
+ ipLabel:"IP-ADRESSE",frequency:"FREQUENZ",speed:"VERBINDUNGSGESCHWINDIGKEIT",
+ wifiStatus:"WLAN-STATUS",refresh:"↻　VERBINDUNG AKTUALISIEREN",
+ analysis:"🛡️ INTELLIGENTE ANALYSE",footer:"WiFi Guard TR · Bleib geschützt",
+ noBridge:"Android-Verbindung konnte nicht hergestellt werden.",off:"Aus",on:"Ein",
+ disconnected:"Nicht verbunden",noWifi:"Du bist nicht mit WLAN verbunden",
+ waitingWifi:"WLAN-Informationen werden gelesen...",
+ disconnectedMessage:"Netzwerkinformationen erscheinen hier, sobald WLAN verbunden ist.",
+ active:"Verbindung aktiv",unknown:"Unbekannt",weak:"Schwach",medium:"Mittel",
+ strong:"Stark",veryStrong:"Sehr stark",
+ connectedMessage:"Deine Verbindung ist aktiv. WLAN-Informationen werden live von deinem Android-Gerät empfangen. Signalqualität: ",
+ readError:"Informationen konnten nicht gelesen werden: "
+},
+fr:{
+ subtitle:"Centre de contrôle Wi-Fi intelligent",live:"● EN DIRECT",
+ heroTitle:"Votre connexion est protégée",heroSub:"Informations Wi-Fi en temps réel",
+ checking:"Vérification...",activeNetwork:"📡 RÉSEAU ACTIF",
+ ssidLabel:"Nom du Wi-Fi (SSID)",ssidPermission:"Autorisation SSID requise",waiting:"En attente d'informations...",
+ signalTitle:"QUALITÉ DU SIGNAL",details:"📊 DÉTAILS DE CONNEXION",
+ ipLabel:"ADRESSE IP",frequency:"FRÉQUENCE",speed:"VITESSE DE CONNEXION",
+ wifiStatus:"ÉTAT DU WI-FI",refresh:"↻　ACTUALISER LA CONNEXION",
+ analysis:"🛡️ ANALYSE INTELLIGENTE",footer:"WiFi Guard TR · Restez protégé",
+ noBridge:"Connexion Android impossible.",off:"Désactivé",on:"Activé",
+ disconnected:"Déconnecté",noWifi:"Vous n'êtes pas connecté au Wi-Fi",
+ waitingWifi:"Lecture des informations Wi-Fi...",
+ disconnectedMessage:"Les informations réseau apparaîtront ici lorsque le Wi-Fi sera connecté.",
+ active:"Connexion active",unknown:"Inconnu",weak:"Faible",medium:"Moyen",
+ strong:"Fort",veryStrong:"Très fort",
+ connectedMessage:"Votre connexion est active. Les informations Wi-Fi sont reçues en direct depuis votre appareil Android. Qualité du signal : ",
+ readError:"Impossible de lire les informations : "
+},
+es:{
+ subtitle:"Centro inteligente de control Wi-Fi",live:"● EN VIVO",
+ heroTitle:"Tu conexión está protegida",heroSub:"Información de conexión Wi-Fi en tiempo real",
+ checking:"Comprobando...",activeNetwork:"📡 RED ACTIVA",
+ ssidLabel:"Nombre de Wi-Fi (SSID)",ssidPermission:"Se requiere permiso SSID",waiting:"Esperando información...",
+ signalTitle:"CALIDAD DE SEÑAL",details:"📊 DETALLES DE CONEXIÓN",
+ ipLabel:"DIRECCIÓN IP",frequency:"FRECUENCIA",speed:"VELOCIDAD DE CONEXIÓN",
+ wifiStatus:"ESTADO DEL WI-FI",refresh:"↻　ACTUALIZAR CONEXIÓN",
+ analysis:"🛡️ ANÁLISIS INTELIGENTE",footer:"WiFi Guard TR · Mantente protegido",
+ noBridge:"No se pudo establecer la conexión con Android.",off:"Apagado",on:"Encendido",
+ disconnected:"Desconectado",noWifi:"No estás conectado a una red Wi-Fi",
+ waitingWifi:"Leyendo información Wi-Fi...",
+ disconnectedMessage:"La información de red aparecerá aquí cuando se conecte el Wi-Fi.",
+ active:"Conexión activa",unknown:"Desconocido",weak:"Débil",medium:"Medio",
+ strong:"Fuerte",veryStrong:"Muy fuerte",
+ connectedMessage:"Tu conexión está activa. La información Wi-Fi se recibe en tiempo real desde tu dispositivo Android. Calidad de señal: ",
+ readError:"No se pudo leer la información: "
+},
+ar:{
+ subtitle:"مركز التحكم الذكي بشبكة Wi-Fi",live:"● مباشر",
+ heroTitle:"اتصالك محمي",heroSub:"معلومات اتصال Wi-Fi المباشرة",
+ checking:"جارٍ التحقق...",activeNetwork:"📡 الشبكة النشطة",
+ ssidLabel:"اسم شبكة Wi-Fi",ssidPermission:"يلزم إذن SSID",waiting:"بانتظار المعلومات...",
+ signalTitle:"جودة الإشارة",details:"📊 تفاصيل الاتصال",
+ ipLabel:"عنوان IP",frequency:"التردد",speed:"سرعة الاتصال",
+ wifiStatus:"حالة Wi-Fi",refresh:"↻　تحديث الاتصال",
+ analysis:"🛡️ التحليل الذكي",footer:"WiFi Guard TR · ابقَ محمياً",
+ noBridge:"تعذر الاتصال بنظام Android.",off:"مغلق",on:"مفتوح",
+ disconnected:"غير متصل",noWifi:"أنت غير متصل بشبكة Wi-Fi",
+ waitingWifi:"جارٍ قراءة معلومات Wi-Fi...",
+ disconnectedMessage:"ستظهر معلومات الشبكة هنا عند الاتصال بشبكة Wi-Fi.",
+ active:"الاتصال نشط",unknown:"غير معروف",weak:"ضعيف",medium:"متوسط",
+ strong:"قوي",veryStrong:"قوي جداً",
+ connectedMessage:"اتصالك نشط. يتم تلقي معلومات Wi-Fi مباشرة من جهاز Android الخاص بك. جودة الإشارة: ",
+ readError:"تعذرت قراءة المعلومات: "
+}
+};
+
+let currentLanguage="tr";
+let lastWifiData=null;
+
+function t(key){
+ return translations[currentLanguage][key] || translations.tr[key] || key;
+}
+
+function setLanguage(language){
+ if(!translations[language]) language="tr";
+ currentLanguage=language;
+
+ document.documentElement.lang=language;
+ document.documentElement.dir=language==="ar"?"rtl":"ltr";
+
+ document.querySelectorAll("[data-i18n]").forEach(element=>{
+  const key=element.getAttribute("data-i18n");
+  element.textContent=t(key);
+ });
+
+ document.getElementById("language").value=language;
+
+ try{localStorage.setItem("wifiGuardLanguage",language);}catch(e){}
+
+ if(lastWifiData) renderWifi(lastWifiData);
+ else document.getElementById("message").textContent=t("waitingWifi");
+}
+
+document.getElementById("language").addEventListener("change",function(){
+ setLanguage(this.value);
+});
+
+try{
+ const saved=localStorage.getItem("wifiGuardLanguage");
+ if(saved && translations[saved]) currentLanguage=saved;
+}catch(e){}
+
+setLanguage(currentLanguage);
+
+function renderWifi(data){
+ lastWifiData=data;
+ const connection=document.getElementById("connection");
+ const message=document.getElementById("message");
+
+ document.getElementById("wifiEnabled").textContent=data.wifiEnabled?t("on"):t("off");
+
+ if(!data.connected){
+  connection.innerHTML='<span class="dot" style="background:#ff7188"></span><span>'+t("disconnected")+'</span>';
+  connection.style.color="#ff7188";
+  connection.style.background="#381c2b";
+  document.getElementById("ssid").textContent=t("noWifi");
+  document.getElementById("signal").textContent="--";
+  document.getElementById("rssi").textContent="RSSI: -- dBm";
+  document.getElementById("signalBar").style.width="0%";
+  document.getElementById("ip").textContent="--";
+  document.getElementById("frequency").textContent="--";
+  document.getElementById("speed").textContent="--";
+  message.textContent=t("disconnectedMessage");
+  return;
+ }
+
+ connection.innerHTML='<span class="dot"></span><span>'+t("active")+'</span>';
+ connection.style.color="#48f0b0";
+ connection.style.background="#073a32";
+ document.getElementById("ssid").textContent=data.ssid==="SSID izni gerekli"?t("ssidPermission"):(data.ssid||t("unknown"));
+
+ const level=Number(data.signalLevel)||0;
+ const rssi=Number(data.rssi);
+ let quality=t("weak");
+
+ if(level>=4)quality=t("veryStrong");
+ else if(level>=3)quality=t("strong");
+ else if(level>=2)quality=t("medium");
+
+ document.getElementById("signal").textContent=quality;
+ document.getElementById("rssi").textContent="RSSI: "+(Number.isFinite(rssi)?rssi:"--")+" dBm";
+ document.getElementById("signalBar").style.width=Math.min(100,Math.max(0,level*20))+"%";
+ document.getElementById("ip").textContent=data.ip||t("unknown");
+ document.getElementById("frequency").textContent=data.frequency?(data.frequency/1000).toFixed(2)+" GHz":"--";
+ document.getElementById("speed").textContent=data.linkSpeed?data.linkSpeed+" Mbps":"--";
+ message.textContent=t("connectedMessage")+quality+".";
+}
+
 function refreshWifi(){
- const message=document.getElementById('message');
+ const message=document.getElementById("message");
 
  if(!window.AndroidWifi){
-  message.innerText='Android bağlantısı kurulamadı.';
+  message.textContent=t("noBridge");
   return;
  }
 
  try{
   const data=JSON.parse(AndroidWifi.getWifiInfo());
-
-  document.getElementById('wifiEnabled').innerText=
-   data.wifiEnabled?'Açık':'Kapalı';
-
-  if(!data.connected){
-   document.getElementById('connection').innerHTML=
-    '<span class="dot" style="background:#ff7188"></span> Bağlı değil';
-   document.getElementById('connection').style.color='#ff7188';
-   document.getElementById('connection').style.background='#381c2b';
-   document.getElementById('ssid').innerText='Wi-Fi ağına bağlı değilsin';
-   document.getElementById('signal').innerText='--';
-   document.getElementById('rssi').innerText='RSSI: -- dBm';
-   document.getElementById('signalBar').style.width='0%';
-   document.getElementById('ip').innerText='--';
-   document.getElementById('frequency').innerText='--';
-   document.getElementById('speed').innerText='--';
-   message.innerText='Wi-Fi bağlantısı kurulduğunda ağ bilgileri burada görünecek.';
-   return;
-  }
-
-  document.getElementById('connection').innerHTML=
-   '<span class="dot"></span> Bağlantı aktif';
-  document.getElementById('connection').style.color='#48f0b0';
-  document.getElementById('connection').style.background='#073a32';
-  document.getElementById('ssid').innerText=data.ssid||'Bilinmiyor';
-
-  const level=Number(data.signalLevel)||0;
-  const rssi=Number(data.rssi);
-  let quality='Zayıf';
-  if(level>=4)quality='Çok güçlü';
-  else if(level>=3)quality='Güçlü';
-  else if(level>=2)quality='Orta';
-
-  document.getElementById('signal').innerText=quality;
-  document.getElementById('rssi').innerText=
-   'RSSI: '+(Number.isFinite(rssi)?rssi:'--')+' dBm';
-  document.getElementById('signalBar').style.width=
-   Math.min(100,Math.max(0,level*20))+'%';
-
-  document.getElementById('ip').innerText=data.ip||'Bilinmiyor';
-  document.getElementById('frequency').innerText=
-   data.frequency?(data.frequency/1000).toFixed(2)+' GHz':'--';
-  document.getElementById('speed').innerText=
-   data.linkSpeed?data.linkSpeed+' Mbps':'--';
-
-  message.innerText='Bağlantın aktif. Wi-Fi bilgileri Android cihazından canlı olarak alınıyor. Sinyal kalitesi: '+quality+'.';
-
+  renderWifi(data);
  }catch(e){
-  message.innerText='Bilgi okunamadı: '+e;
+  message.textContent=t("readError")+e;
  }
 }
+
 setTimeout(refreshWifi,800);
 </script>
 </body>
