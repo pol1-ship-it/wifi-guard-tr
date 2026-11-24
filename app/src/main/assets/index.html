@@ -3,47 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#080d18">
-<title>WiFi Guard</title>
+<meta name="theme-color" content="#060b16">
+<title>WiFi Guard TR</title>
 
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;padding:20px;background:#080d18;color:#eef4ff;
- font-family:Arial,sans-serif
+ margin:0;padding:22px 17px 35px;
+ background:radial-gradient(ellipse at top,#102849 0%,#080f1e 48%,#050914 100%);
+ color:#edf5ff;font-family:Arial,sans-serif;
 }
-.header{display:flex;align-items:center;gap:12px;margin:10px 0 25px}
+.header{display:flex;align-items:center;gap:14px;margin:8px 0 26px}
 .logo{
- width:48px;height:48px;border-radius:15px;background:#1677ff;
- display:grid;place-items:center;font-size:25px
+ width:58px;height:58px;border-radius:19px;
+ display:grid;place-items:center;
+ background:linear-gradient(145deg,#087cff,#04d9c0);
+ box-shadow:0 0 28px #008cff66;font-size:31px;
 }
-h1{font-size:22px;margin:0}
-.sub{color:#91a4c3;font-size:12px;margin-top:5px}
+h1{font-size:23px;margin:0;font-weight:800}
+.sub{color:#8fa7c7;font-size:12px;margin-top:5px}
+.tag{
+ margin-left:auto;background:#102b35;color:#42e8b0;
+ border:1px solid #1c765d;border-radius:20px;
+ padding:7px 10px;font-size:10px;font-weight:bold;
+}
+.hero{
+ position:relative;overflow:hidden;text-align:center;
+ padding:25px 18px 22px;margin-bottom:16px;
+ border:1px solid #176e9c;border-radius:25px;
+ background:linear-gradient(145deg,#102c4b,#0a1729 65%,#092c35);
+ box-shadow:0 12px 35px #0006;
+}
+.hero:before{
+ content:"";position:absolute;width:220px;height:220px;
+ border:1px solid #1d9bd344;border-radius:50%;
+ top:-120px;left:50%;transform:translateX(-50%);
+ box-shadow:0 0 0 20px #1d9bd311,0 0 0 40px #1d9bd308;
+}
+.shield{font-size:66px;filter:drop-shadow(0 0 17px #00bfff)}
+.hero-title{font-size:20px;font-weight:bold;margin-top:8px}
+.hero-sub{font-size:12px;color:#9bb5d4;margin-top:7px}
+.status{
+ display:inline-flex;align-items:center;gap:8px;
+ background:#073a32;border:1px solid #087d60;
+ color:#48f0b0;padding:10px 17px;border-radius:30px;
+ margin-top:17px;font-size:13px;font-weight:bold;
+}
+.dot{width:8px;height:8px;border-radius:50%;background:#35efad;box-shadow:0 0 10px #35efad}
 .card{
- background:#111b2d;border:1px solid #23344e;
- padding:18px;border-radius:18px;margin-bottom:15px
+ background:linear-gradient(145deg,#111f34,#0b1627);
+ border:1px solid #243c59;border-radius:19px;
+ padding:18px;margin-bottom:14px;
+ box-shadow:0 8px 22px #0003;
 }
-.label{font-size:12px;color:#93a8c8}
-.value{font-size:22px;font-weight:bold;margin:10px 0}
-.green{color:#40e0a0}
-.red{color:#ff6378}
-.blue{color:#48a5ff}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card-title{
+ color:#8ca9ca;font-size:11px;font-weight:bold;
+ letter-spacing:1.3px;margin-bottom:15px;
+}
+.network{display:flex;align-items:center;gap:13px}
+.network-icon{
+ width:48px;height:48px;border-radius:15px;
+ display:grid;place-items:center;background:#102e50;
+ font-size:25px;color:#36c9ff;
+}
+.network-name{font-size:17px;font-weight:bold;word-break:break-word}
+.network-label{font-size:11px;color:#8da7c8;margin-bottom:5px}
+.signal-head{display:flex;justify-content:space-between;align-items:center}
+.signal-value{font-size:19px;font-weight:bold;color:#48eab0}
+.bar{height:10px;background:#26374d;border-radius:20px;margin-top:14px;overflow:hidden}
+.fill{
+ height:100%;width:0%;border-radius:20px;
+ background:linear-gradient(90deg,#168cff,#12e5a1);
+ box-shadow:0 0 12px #12e5a188;transition:width .6s;
+}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 .stat{
- background:#0c1627;border:1px solid #243751;
- border-radius:14px;padding:14px;min-height:90px
+ background:linear-gradient(145deg,#14243a,#0d192a);
+ border:1px solid #263c57;border-radius:17px;
+ padding:15px;min-height:112px;
 }
-.stat .label{font-size:11px}
-.stat .value{font-size:17px;word-break:break-word}
+.stat-icon{font-size:22px;margin-bottom:12px}
+.label{font-size:10px;color:#8ca5c5;letter-spacing:.7px}
+.value{font-size:17px;font-weight:bold;margin-top:8px;overflow-wrap:anywhere}
+.blue{color:#55caff}
+.green{color:#42e9ac}
+.red{color:#ff7188}
 button{
- border:1px solid #263955;background:#1677ff;color:white;
- border-radius:14px;padding:16px;width:100%;
- font-size:15px;font-weight:bold;margin-top:15px
+ border:0;border-radius:15px;padding:16px;width:100%;
+ background:linear-gradient(100deg,#087cff,#05b9d5);
+ color:white;font-size:15px;font-weight:bold;
+ margin:16px 0;box-shadow:0 7px 22px #008cff44;
 }
-.bar{height:8px;background:#23344c;border-radius:10px;margin-top:12px}
-.fill{height:100%;width:0;background:#28d89b;border-radius:10px;transition:.3s}
-#message{font-size:13px;color:#91a4c3;line-height:1.6;margin-top:12px}
-.footer{text-align:center;color:#60728f;font-size:11px;margin-top:25px}
+button:active{transform:scale(.98)}
+#message{font-size:13px;color:#b2c5df;line-height:1.7}
+.footer{text-align:center;color:#607795;font-size:11px;margin-top:22px}
 </style>
 </head>
 
@@ -51,57 +104,85 @@ button{
 <div class="header">
  <div class="logo">🛡️</div>
  <div>
-  <h1>WiFi Guard</h1>
-  <div class="sub">Gerçek Wi-Fi bağlantı analizi</div>
+  <h1>WiFi Guard TR</h1>
+  <div class="sub">Akıllı Wi-Fi kontrol merkezi</div>
+ </div>
+ <div class="tag">● CANLI</div>
+</div>
+
+<div class="hero">
+ <div class="shield">🛡️</div>
+ <div class="hero-title">Bağlantın Kontrol Altında</div>
+ <div class="hero-sub">Wi-Fi ağının anlık bağlantı bilgileri</div>
+ <div class="status" id="connection">
+  <span class="dot"></span> Kontrol ediliyor...
  </div>
 </div>
 
 <div class="card">
- <div class="label">BAĞLANTI DURUMU</div>
- <div id="connection" class="value">Kontrol ediliyor...</div>
- <div id="ssid" class="sub">Wi-Fi bilgileri bekleniyor</div>
+ <div class="card-title">📡 AKTİF AĞ</div>
+ <div class="network">
+  <div class="network-icon">◉</div>
+  <div>
+   <div class="network-label">Wi-Fi adı (SSID)</div>
+   <div class="network-name" id="ssid">Bilgi bekleniyor...</div>
+  </div>
+ </div>
 </div>
 
 <div class="card">
- <div class="label">SİNYAL GÜCÜ</div>
- <div id="signal" class="value blue">--</div>
- <div class="bar"><div id="signalBar" class="fill"></div></div>
- <div id="rssi" class="sub">RSSI: -- dBm</div>
+ <div class="signal-head">
+  <div>
+   <div class="card-title" style="margin-bottom:7px">SİNYAL KALİTESİ</div>
+   <div class="signal-value" id="signal">--</div>
+  </div>
+  <div style="font-size:30px">📶</div>
+ </div>
+ <div class="bar"><div class="fill" id="signalBar"></div></div>
+ <div class="sub" id="rssi">RSSI: -- dBm</div>
 </div>
 
-<div class="grid">
- <div class="stat">
-  <div class="label">IP ADRESİ</div>
-  <div id="ip" class="value">--</div>
- </div>
- <div class="stat">
-  <div class="label">FREKANS</div>
-  <div id="frequency" class="value">--</div>
- </div>
- <div class="stat">
-  <div class="label">BAĞLANTI HIZI</div>
-  <div id="speed" class="value">--</div>
- </div>
- <div class="stat">
-  <div class="label">WI-FI DURUMU</div>
-  <div id="wifiEnabled" class="value">--</div>
+<div class="card">
+ <div class="card-title">📊 BAĞLANTI DETAYLARI</div>
+ <div class="grid">
+  <div class="stat">
+   <div class="stat-icon">🌐</div>
+   <div class="label">IP ADRESİ</div>
+   <div id="ip" class="value blue">--</div>
+  </div>
+  <div class="stat">
+   <div class="stat-icon">📡</div>
+   <div class="label">FREKANS</div>
+   <div id="frequency" class="value blue">--</div>
+  </div>
+  <div class="stat">
+   <div class="stat-icon">⚡</div>
+   <div class="label">BAĞLANTI HIZI</div>
+   <div id="speed" class="value green">--</div>
+  </div>
+  <div class="stat">
+   <div class="stat-icon">🔌</div>
+   <div class="label">WI-FI DURUMU</div>
+   <div id="wifiEnabled" class="value green">--</div>
+  </div>
  </div>
 </div>
 
-<button onclick="refreshWifi()">🔄 Bilgileri Yenile</button>
+<button onclick="refreshWifi()">↻　BAĞLANTIYI YENİLE</button>
 
-<div class="card" style="margin-top:15px">
- <div class="label">ANALİZ</div>
+<div class="card">
+ <div class="card-title">🛡️ AKILLI ANALİZ</div>
  <div id="message">Wi-Fi bilgileri okunuyor...</div>
 </div>
 
-<div class="footer">WiFi Guard · Live Network Info</div>
+<div class="footer">WiFi Guard TR · Güvende Kalın</div>
 
 <script>
 function refreshWifi(){
+ const message=document.getElementById('message');
+
  if(!window.AndroidWifi){
-  document.getElementById('message').innerText=
-   'Android bağlantısı kurulamadı.';
+  message.innerText='Android bağlantısı kurulamadı.';
   return;
  }
 
@@ -112,8 +193,10 @@ function refreshWifi(){
    data.wifiEnabled?'Açık':'Kapalı';
 
   if(!data.connected){
-   document.getElementById('connection').innerText='● Bağlı değil';
-   document.getElementById('connection').className='value red';
+   document.getElementById('connection').innerHTML=
+    '<span class="dot" style="background:#ff7188"></span> Bağlı değil';
+   document.getElementById('connection').style.color='#ff7188';
+   document.getElementById('connection').style.background='#381c2b';
    document.getElementById('ssid').innerText='Wi-Fi ağına bağlı değilsin';
    document.getElementById('signal').innerText='--';
    document.getElementById('rssi').innerText='RSSI: -- dBm';
@@ -121,43 +204,42 @@ function refreshWifi(){
    document.getElementById('ip').innerText='--';
    document.getElementById('frequency').innerText='--';
    document.getElementById('speed').innerText='--';
-   document.getElementById('message').innerText=
-    'Wi-Fi bağlantısı kurulduğunda ağ bilgileri burada görünecek.';
+   message.innerText='Wi-Fi bağlantısı kurulduğunda ağ bilgileri burada görünecek.';
    return;
   }
 
-  document.getElementById('connection').innerText='● Bağlantı aktif';
-  document.getElementById('connection').className='value green';
-  document.getElementById('ssid').innerText='Ağ: '+(data.ssid||'Bilinmiyor');
+  document.getElementById('connection').innerHTML=
+   '<span class="dot"></span> Bağlantı aktif';
+  document.getElementById('connection').style.color='#48f0b0';
+  document.getElementById('connection').style.background='#073a32';
+  document.getElementById('ssid').innerText=data.ssid||'Bilinmiyor';
 
-  const level=data.signalLevel||0;
-  const rssi=data.rssi||-100;
-
+  const level=Number(data.signalLevel)||0;
+  const rssi=Number(data.rssi);
   let quality='Zayıf';
   if(level>=4)quality='Çok güçlü';
   else if(level>=3)quality='Güçlü';
   else if(level>=2)quality='Orta';
 
   document.getElementById('signal').innerText=quality;
-  document.getElementById('rssi').innerText='RSSI: '+rssi+' dBm';
-  document.getElementById('signalBar').style.width=(level*20)+'%';
+  document.getElementById('rssi').innerText=
+   'RSSI: '+(Number.isFinite(rssi)?rssi:'--')+' dBm';
+  document.getElementById('signalBar').style.width=
+   Math.min(100,Math.max(0,level*20))+'%';
+
   document.getElementById('ip').innerText=data.ip||'Bilinmiyor';
-
   document.getElementById('frequency').innerText=
-   data.frequency ? (data.frequency/1000).toFixed(2)+' GHz':'--';
-
+   data.frequency?(data.frequency/1000).toFixed(2)+' GHz':'--';
   document.getElementById('speed').innerText=
-   data.linkSpeed ? data.linkSpeed+' Mbps':'--';
+   data.linkSpeed?data.linkSpeed+' Mbps':'--';
 
-  document.getElementById('message').innerText=
-   'Wi-Fi bağlantın aktif. Bilgiler Android cihazından canlı olarak alınıyor.';
+  message.innerText='Bağlantın aktif. Wi-Fi bilgileri Android cihazından canlı olarak alınıyor. Sinyal kalitesi: '+quality+'.';
 
  }catch(e){
-  document.getElementById('message').innerText='Hata: '+e;
+  message.innerText='Bilgi okunamadı: '+e;
  }
 }
-
-setTimeout(refreshWifi,1000);
+setTimeout(refreshWifi,800);
 </script>
 </body>
 </html>
