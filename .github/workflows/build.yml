@@ -44,8 +44,24 @@ jobs:
       - name: Read app version
         id: version
         run: |
-          VERSION_NAME=$(sed -n "s/.*versionName '\([^']*\)'.*/\1/p" app/build.gradle)
+          VERSION_NAME=$(sed -n "s/.*versionName '\([^']*\)'.*/\1/p" app/build.gradle | head -n 1)
           echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create update metadata
+        run: |
+          APK="app/build/outputs/apk/release/app-release.apk"
+          VERSION_CODE=$(sed -n "s/.*versionCode \([0-9]*\).*/\1/p" app/build.gradle | head -n 1)
+          VERSION_NAME=$(sed -n "s/.*versionName '\([^']*\)'.*/\1/p" app/build.gradle | head -n 1)
+          SHA256=$(sha256sum "$APK" | awk '{print $1}')
+
+          cat > version.json <<JSON
+          {
+            "versionCode": $VERSION_CODE,
+            "versionName": "$VERSION_NAME",
+            "apk": "app-release.apk",
+            "sha256": "$SHA256"
+          }
+          JSON
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -61,6 +77,8 @@ jobs:
           body: |
             WiFi Guard TR sürüm ${{ steps.version.outputs.name }}
 
-            APK dosyasını indirerek uygulamayı güncelleyebilirsiniz.
-          files: app/build/outputs/apk/release/*.apk
+            APK dosyası ve güvenli güncelleme bilgileri.
+          files: |
+            app/build/outputs/apk/release/*.apk
+            version.json
           fail_on_unmatched_files: true

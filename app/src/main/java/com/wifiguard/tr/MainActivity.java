@@ -3,38 +3,513 @@ package com.wifiguard.tr;
 import android.Manifest;
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Build;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageInfo;
+import android.content.pm.Signature;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiInfo;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
+import android.net.Uri;
 import android.webkit.WebView;
 import android.webkit.WebSettings;
 import android.webkit.WebViewClient;
 import android.webkit.JavascriptInterface;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Button;
+import android.view.Gravity;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.widget.Toast;
-import android.os.Build;
+
+import androidx.core.content.FileProvider;
 
 import org.json.JSONObject;
+import org.json.JSONArray;
+
+import java.io.File;
+import java.io.InputStream;
+import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.net.URL;
+import java.net.HttpURLConnection;
+import java.security.MessageDigest;
+import java.util.Set;
+import java.util.HashSet;
 
 public class MainActivity extends Activity {
 
+    private static final String API_URL =
+        "https://api.github.com/repos/pol1-ship-it/wifi-guard-tr/releases/latest";
+
     private WebView webView;
+    private TextView statusText;
+    private Button actionButton;
+    private File pendingApk;
+
+    private boolean installRequested = false;
+    private boolean installerLaunched = false;
+    private boolean appOpened = false;
+
+    private final Handler mainHandler =
+        new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (isWifiConnected()) {
+            showUpdateScreen("Wi-Fi bağlantısı algılandı.\nGüncellemeler kontrol ediliyor...");
+            new Thread(this::checkForUpdate).start();
+        } else {
+            openMainApp();
+        }
+    }
+
+    private boolean isWifiConnected() {
+        try {
+            ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(
+                    Context.CONNECTIVITY_SERVICE);
+
+            Network network = cm.getActiveNetwork();
+
+            if (network == null) return false;
+
+            NetworkCapabilities caps =
+                cm.getNetworkCapabilities(network);
+
+            return caps != null &&
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void checkForUpdate() {
+        try {
+            JSONObject release = getJson(API_URL);
+            JSONArray assets = release.getJSONArray("assets");
+
+            String metadataUrl = null;
+            String apkUrl = null;
+
+            for (int i = 0; i < assets.length(); i++) {
+                JSONObject asset = assets.getJSONObject(i);
+                String name = asset.getString("name");
+
+                if (name.equals("version.json")) {
+                    metadataUrl = asset.getString("browser_download_url");
+                }
+            }
+
+            if (metadataUrl == null) {
+                throw new Exception("Sürüm bilgisi bulunamadı.");
+            }
+
+            JSONObject metadata = getJson(metadataUrl);
+
+            String apkName = metadata.getString("apk");
+            String expectedHash = metadata.getString("sha256");
+
+            for (int i = 0; i < assets.length(); i++) {
+                JSONObject asset = assets.getJSONObject(i);
+
+                if (asset.getString("name").equals(apkName)) {
+                    apkUrl = asset.getString("browser_download_url");
+                    break;
+                }
+            }
+
+            if (apkUrl == null) {
+                throw new Exception("Güncelleme APK dosyası bulunamadı.");
+            }
+
+            long latestVersion = metadata.getLong("versionCode");
+
+            PackageInfo installed =
+                getPackageManager().getPackageInfo(getPackageName(), 0);
+
+            long currentVersion;
+
+            if (Build.VERSION.SDK_INT >= 28) {
+                currentVersion = installed.getLongVersionCode();
+            } else {
+                currentVersion = installed.versionCode;
+            }
+
+            if (latestVersion <= currentVersion) {
+                mainHandler.post(this::openMainApp);
+                return;
+            }
+
+            updateStatus(
+                "Yeni sürüm bulundu: " +
+                metadata.getString("versionName") +
+                "\nGüncelleme indiriliyor...");
+
+            File directory = new File(getFilesDir(), "updates");
+            if (!directory.exists() && !directory.mkdirs()) {
+                throw new Exception("Güncelleme klasörü oluşturulamadı.");
+            }
+
+            File apk = new File(directory, "update.apk");
+            downloadFile(apkUrl, apk);
+
+            updateStatus("İndirilen dosyanın SHA-256 değeri kontrol ediliyor...");
+
+            String actualHash = sha256(apk);
+
+            if (!actualHash.equalsIgnoreCase(expectedHash)) {
+                throw new SecurityException(
+                    "SHA-256 doğrulaması başarısız. APK güvenli değil.");
+            }
+
+            updateStatus("Uygulama imzası kontrol ediliyor...");
+
+            if (!sameSigningCertificate(apk)) {
+                throw new SecurityException(
+                    "APK imzası mevcut uygulamayla eşleşmiyor.");
+            }
+
+            pendingApk = apk;
+
+            mainHandler.post(() -> {
+                showUpdateScreen(
+                    "WiFi Guard TR için zorunlu güncelleme hazır.\n\n" +
+                    "Yeni sürüm: " +
+                    metadata.optString("versionName") +
+                    "\n\nDevam etmek için güncellemeyi yükle.");
+                actionButton.setText("GÜNCELLEMEYİ YÜKLE");
+                actionButton.setOnClickListener(v -> beginInstallation());
+            });
+
+        } catch (SecurityException e) {
+            mainHandler.post(() -> {
+                showUpdateScreen(
+                    "GÜVENLİK UYARISI\n\n" + e.getMessage() +
+                    "\n\nGüvenlik doğrulaması başarısız olduğu için kurulum engellendi.");
+                actionButton.setText("TEKRAR DENE");
+                actionButton.setOnClickListener(v ->
+                    new Thread(this::checkForUpdate).start());
+            });
+
+        } catch (Exception e) {
+            mainHandler.post(() -> {
+                Toast.makeText(
+                    this,
+                    "Güncelleme kontrol edilemedi: " + e.getMessage(),
+                    Toast.LENGTH_LONG
+                ).show();
+
+                openMainApp();
+            });
+        }
+    }
+
+    private JSONObject getJson(String address) throws Exception {
+        String response = readUrl(address);
+        return new JSONObject(response);
+    }
+
+    private String readUrl(String address) throws Exception {
+        HttpURLConnection connection =
+            (HttpURLConnection) new URL(address).openConnection();
+
+        connection.setConnectTimeout(15000);
+        connection.setReadTimeout(20000);
+        connection.setRequestProperty(
+            "User-Agent", "WiFi-Guard-TR-Android");
+        connection.setRequestProperty(
+            "Accept", "application/vnd.github+json");
+
+        try {
+            InputStream input = connection.getInputStream();
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+            byte[] buffer = new byte[8192];
+            int count;
+
+            while ((count = input.read(buffer)) != -1) {
+                output.write(buffer, 0, count);
+            }
+
+            input.close();
+            return output.toString("UTF-8");
+
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private void downloadFile(String address, File destination)
+        throws Exception {
+
+        HttpURLConnection connection =
+            (HttpURLConnection) new URL(address).openConnection();
+
+        connection.setConnectTimeout(15000);
+        connection.setReadTimeout(60000);
+        connection.setRequestProperty(
+            "User-Agent", "WiFi-Guard-TR-Android");
+
+        try {
+            InputStream input = connection.getInputStream();
+            FileOutputStream output =
+                new FileOutputStream(destination);
+
+            byte[] buffer = new byte[8192];
+            int count;
+
+            while ((count = input.read(buffer)) != -1) {
+                output.write(buffer, 0, count);
+            }
+
+            output.flush();
+            output.close();
+            input.close();
+
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private String sha256(File file) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+        InputStream input = new java.io.FileInputStream(file);
+
+        byte[] buffer = new byte[8192];
+        int count;
+
+        while ((count = input.read(buffer)) != -1) {
+            digest.update(buffer, 0, count);
+        }
+
+        input.close();
+
+        StringBuilder result = new StringBuilder();
+
+        for (byte b : digest.digest()) {
+            result.append(String.format("%02x", b & 0xff));
+        }
+
+        return result.toString();
+    }
+
+    private Set<String> signerDigests(PackageInfo info)
+        throws Exception {
+
+        Set<String> result = new HashSet<>();
+        Signature[] signatures;
+
+        if (Build.VERSION.SDK_INT >= 28) {
+            if (info.signingInfo == null) {
+                throw new SecurityException("APK imza bilgisi bulunamadı.");
+            }
+
+            signatures = info.signingInfo.getApkContentsSigners();
+
+        } else {
+            signatures = info.signatures;
+        }
+
+        if (signatures == null || signatures.length == 0) {
+            throw new SecurityException("APK imzası boş.");
+        }
+
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+        for (Signature signature : signatures) {
+            byte[] hash = digest.digest(signature.toByteArray());
+
+            StringBuilder value = new StringBuilder();
+
+            for (byte b : hash) {
+                value.append(String.format("%02x", b & 0xff));
+            }
+
+            result.add(value.toString());
+        }
+
+        return result;
+    }
+
+    private boolean sameSigningCertificate(File apk)
+        throws Exception {
+
+        PackageInfo installed =
+            getPackageManager().getPackageInfo(
+                getPackageName(),
+                PackageManager.GET_SIGNING_CERTIFICATES);
+
+        PackageInfo downloaded =
+            getPackageManager().getPackageArchiveInfo(
+                apk.getAbsolutePath(),
+                PackageManager.GET_SIGNING_CERTIFICATES);
+
+        if (downloaded == null ||
+            !getPackageName().equals(downloaded.packageName)) {
+            return false;
+        }
+
+        return signerDigests(installed).equals(
+            signerDigests(downloaded));
+    }
+
+    private void beginInstallation() {
+        if (pendingApk == null) return;
+
+        installRequested = true;
+
+        if (Build.VERSION.SDK_INT >= 26 &&
+            !getPackageManager().canRequestPackageInstalls()) {
+
+            showUpdateScreen(
+                "Android ayarlarından WiFi Guard TR için " +
+                "bu kaynaktan uygulama yükleme izni vermelisin.");
+
+            actionButton.setText("YÜKLEME İZNİNİ AÇ");
+
+            actionButton.setOnClickListener(v -> {
+                Intent intent = new Intent(
+                    android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.parse("package:" + getPackageName()));
+
+                startActivity(intent);
+            });
+
+            return;
+        }
+
+        installApk();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (installRequested &&
+            pendingApk != null &&
+            !installerLaunched) {
+
+            if (Build.VERSION.SDK_INT < 26 ||
+                getPackageManager().canRequestPackageInstalls()) {
+                installApk();
+            }
+        }
+    }
+
+    private void installApk() {
+        try {
+            Uri apkUri = FileProvider.getUriForFile(
+                this,
+                getPackageName() + ".fileprovider",
+                pendingApk);
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(
+                apkUri,
+                "application/vnd.android.package-archive");
+
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            installerLaunched = true;
+            startActivityForResult(intent, 500);
+
+        } catch (Exception e) {
+            installerLaunched = false;
+
+            showUpdateScreen(
+                "Kurulum ekranı açılamadı: " + e.getMessage());
+        }
+    }
+
+    @Override
+    protected void onActivityResult(
+        int requestCode, int resultCode, Intent data) {
+
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 500) {
+            installerLaunched = false;
+
+            if (pendingApk != null) {
+                showUpdateScreen(
+                    "Güncelleme henüz tamamlanmadı.\n" +
+                    "Devam etmek için güncellemeyi yüklemelisin.");
+
+                actionButton.setText("TEKRAR YÜKLE");
+                actionButton.setOnClickListener(v -> beginInstallation());
+            }
+        }
+    }
+
+    private void showUpdateScreen(String message) {
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setGravity(Gravity.CENTER);
+        layout.setPadding(35, 35, 35, 35);
+        layout.setBackgroundColor(Color.rgb(8, 13, 24));
+
+        TextView title = new TextView(this);
+        title.setText("WiFi Guard TR");
+        title.setTextColor(Color.rgb(0, 220, 210));
+        title.setTextSize(27);
+        title.setTypeface(null, Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+
+        statusText = new TextView(this);
+        statusText.setText(message);
+        statusText.setTextColor(Color.WHITE);
+        statusText.setTextSize(16);
+        statusText.setGravity(Gravity.CENTER);
+        statusText.setPadding(10, 35, 10, 35);
+
+        actionButton = new Button(this);
+        actionButton.setText("LÜTFEN BEKLEYİN");
+
+        layout.addView(title);
+        layout.addView(statusText);
+        layout.addView(actionButton);
+
+        setContentView(layout);
+    }
+
+    private void updateStatus(String message) {
+        mainHandler.post(() -> {
+            if (statusText != null) {
+                statusText.setText(message);
+            }
+        });
+    }
+
+    private void openMainApp() {
+        if (appOpened) return;
+
+        appOpened = true;
+
         webView = new WebView(this);
+
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
 
         webView.setBackgroundColor(0xFF080D18);
         webView.setWebViewClient(new WebViewClient());
-        webView.addJavascriptInterface(new WifiBridge(), "AndroidWifi");
+        webView.addJavascriptInterface(
+            new WifiBridge(), "AndroidWifi");
 
         setContentView(webView);
         webView.loadUrl("file:///android_asset/index.html");
@@ -44,22 +519,26 @@ public class MainActivity extends Activity {
 
     private void requestWifiPermissions() {
         if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED) {
+            if (checkSelfPermission(
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
                 requestPermissions(
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    100
-                );
+                    new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    }, 100);
             }
         }
 
         if (Build.VERSION.SDK_INT >= 33) {
-            if (checkSelfPermission(Manifest.permission.NEARBY_WIFI_DEVICES)
-                    != PackageManager.PERMISSION_GRANTED) {
+            if (checkSelfPermission(
+                Manifest.permission.NEARBY_WIFI_DEVICES)
+                != PackageManager.PERMISSION_GRANTED) {
+
                 requestPermissions(
-                    new String[]{Manifest.permission.NEARBY_WIFI_DEVICES},
-                    101
-                );
+                    new String[]{
+                        Manifest.permission.NEARBY_WIFI_DEVICES
+                    }, 101);
             }
         }
     }
@@ -68,7 +547,8 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String getWifiInfo() {
-            JSONObject result = new JSONObject();
+            org.json.JSONObject result =
+                new org.json.JSONObject();
 
             try {
                 WifiManager wifiManager =
@@ -77,7 +557,7 @@ public class MainActivity extends Activity {
 
                 ConnectivityManager cm =
                     (ConnectivityManager) getSystemService(
-                    Context.CONNECTIVITY_SERVICE);
+                        Context.CONNECTIVITY_SERVICE);
 
                 boolean connected = false;
 
@@ -91,23 +571,28 @@ public class MainActivity extends Activity {
                 }
 
                 result.put("connected", connected);
-                result.put("wifiEnabled", wifiManager.isWifiEnabled());
+                result.put("wifiEnabled",
+                    wifiManager.isWifiEnabled());
 
                 if (connected && wifiManager != null) {
                     WifiInfo info = wifiManager.getConnectionInfo();
 
                     String ssid = info.getSSID();
+
                     if (ssid != null) {
                         ssid = ssid.replace("\"", "");
+
                         if (ssid.equals("<unknown ssid>")) {
                             ssid = "SSID izni gerekli";
                         }
                     }
 
                     int rssi = info.getRssi();
-                    int level = WifiManager.calculateSignalLevel(rssi, 5);
+                    int level =
+                        WifiManager.calculateSignalLevel(rssi, 5);
 
                     int ip = info.getIpAddress();
+
                     String ipAddress = String.format(
                         "%d.%d.%d.%d",
                         ip & 0xff,
