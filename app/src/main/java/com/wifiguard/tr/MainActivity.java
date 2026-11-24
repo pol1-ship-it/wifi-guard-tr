@@ -13,6 +13,15 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageInfo;
 import android.content.pm.Signature;
 import android.net.wifi.WifiManager;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.net.InetAddress;
+import android.net.wifi.DhcpInfo;
+import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -563,28 +572,27 @@ public class MainActivity extends Activity {
     }
 
     private void requestWifiPermissions() {
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (Build.VERSION.SDK_INT < 23) return;
 
-                requestPermissions(
-                    new String[]{
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    }, 100);
-            }
+        ArrayList<String> missing = new ArrayList<>();
+
+        if (checkSelfPermission(
+            Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            missing.add(Manifest.permission.ACCESS_FINE_LOCATION);
         }
 
-        if (Build.VERSION.SDK_INT >= 33) {
-            if (checkSelfPermission(
+        if (Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(
                 Manifest.permission.NEARBY_WIFI_DEVICES)
-                != PackageManager.PERMISSION_GRANTED) {
+            != PackageManager.PERMISSION_GRANTED) {
+            missing.add(Manifest.permission.NEARBY_WIFI_DEVICES);
+        }
 
-                requestPermissions(
-                    new String[]{
-                        Manifest.permission.NEARBY_WIFI_DEVICES
-                    }, 101);
-            }
+        if (!missing.isEmpty()) {
+            requestPermissions(
+                missing.toArray(new String[0]), 100
+            );
         }
     }
 
@@ -660,7 +668,237 @@ public class MainActivity extends Activity {
                 } catch (Exception ignored) {}
             }
 
+
             return result.toString();
+        }
+
+        @JavascriptInterface
+        public String scanWifiNetworks() {
+            JSONObject output = new JSONObject();
+            JSONArray networks = new JSONArray();
+
+            try {
+                if (checkSelfPermission(
+                    Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                    output.put("ok", false);
+                    output.put("error", "LOCATION_PERMISSION");
+                    return output.toString();
+                }
+
+                WifiManager manager =
+                    (WifiManager) getApplicationContext()
+                    .getSystemService(Context.WIFI_SERVICE);
+
+                if (manager == null || !manager.isWifiEnabled()) {
+                    output.put("ok", false);
+                    output.put("error", "WIFI_DISABLED");
+                    return output.toString();
+                }
+
+                boolean started = manager.startScan();
+
+                List<ScanResult> results = manager.getScanResults();
+
+                for (ScanResult scan : results) {
+                    JSONObject item = new JSONObject();
+
+                    item.put("ssid",
+                        scan.SSID == null || scan.SSID.isEmpty()
+                        ? "(Gizli ağ)" : scan.SSID);
+
+                    item.put("bssid",
+                        scan.BSSID == null ? "" : scan.BSSID);
+
+                    item.put("rssi", scan.level);
+                    item.put("frequency", scan.frequency);
+                    item.put("capabilities",
+                        scan.capabilities == null
+                        ? "" : scan.capabilities);
+
+                    item.put("channel",
+                        frequencyToChannel(scan.frequency));
+
+                    item.put("band",
+                        scan.frequency >= 5925 ? "6 GHz" :
+                        scan.frequency >= 4900 ? "5 GHz" :
+                        "2.4 GHz");
+
+                    networks.put(item);
+                }
+
+                output.put("ok", true);
+                output.put("scanStarted", started);
+                output.put("networks", networks);
+                output.put("count", networks.length());
+
+            } catch (SecurityException e) {
+                try {
+                    output.put("ok", false);
+                    output.put("error", "PERMISSION_DENIED");
+                } catch (Exception ignored) {}
+            } catch (Exception e) {
+                try {
+                    output.put("ok", false);
+                    output.put("error", e.getMessage());
+                } catch (Exception ignored) {}
+            }
+
+            return output.toString();
+        }
+
+        private int frequencyToChannel(int frequency) {
+            if (frequency >= 2412 && frequency <= 2472)
+                return (frequency - 2407) / 5;
+
+            if (frequency == 2484) return 14;
+
+            if (frequency >= 5000 && frequency < 5925)
+                return (frequency - 5000) / 5;
+
+            if (frequency >= 5955 && frequency <= 7115)
+                return (frequency - 5950) / 5;
+
+            return 0;
+        }
+
+        @JavascriptInterface
+        public String scanLanDevices() {
+            JSONObject output = new JSONObject();
+            JSONArray devices = new JSONArray();
+
+            ExecutorService executor = null;
+
+            try {
+                WifiManager manager =
+                    (WifiManager) getApplicationContext()
+                    .getSystemService(Context.WIFI_SERVICE);
+
+                if (manager == null || !manager.isWifiEnabled()) {
+                    output.put("ok", false);
+                    output.put("error", "WIFI_DISABLED");
+                    return output.toString();
+                }
+
+                DhcpInfo dhcp = manager.getDhcpInfo();
+
+                if (dhcp == null || dhcp.ipAddress == 0) {
+                    output.put("ok", false);
+                    output.put("error", "NO_LOCAL_NETWORK");
+                    return output.toString();
+                }
+
+                int localIp = Integer.reverseBytes(dhcp.ipAddress);
+                int gateway = Integer.reverseBytes(dhcp.gateway);
+                int mask = dhcp.netmask == 0
+                    ? 0xFFFFFF00
+                    : Integer.reverseBytes(dhcp.netmask);
+
+                String localAddress = intToIp(localIp);
+                String gatewayAddress = intToIp(gateway);
+
+                JSONObject self = new JSONObject();
+                self.put("ip", localAddress);
+                self.put("name", "Bu cihaz");
+                self.put("type", "local");
+                devices.put(self);
+
+                output.put("localIp", localAddress);
+                output.put("gateway", gatewayAddress);
+
+                int hostBits = Integer.bitCount(~mask);
+                int hostCount = (1 << Math.min(hostBits, 30)) - 2;
+                hostCount = Math.max(0, Math.min(hostCount, 512));
+
+                int base = localIp & mask;
+
+                executor = Executors.newFixedThreadPool(32);
+                List<Future<JSONObject>> futures = new ArrayList<>();
+
+                for (int i = 1; i <= hostCount; i++) {
+                    final int candidate = base + i;
+
+                    if (candidate == localIp ||
+                        candidate == gateway) {
+                        continue;
+                    }
+
+                    futures.add(executor.submit(() -> {
+                        try {
+                            InetAddress address =
+                                InetAddress.getByAddress(
+                                    new byte[] {
+                                        (byte) (candidate >>> 24),
+                                        (byte) (candidate >>> 16),
+                                        (byte) (candidate >>> 8),
+                                        (byte) candidate
+                                    });
+
+                            if (address.isReachable(220)) {
+                                JSONObject device = new JSONObject();
+                                device.put("ip", address.getHostAddress());
+                                device.put("name", "Ağ cihazı");
+                                device.put("type", "discovered");
+                                return device;
+                            }
+                        } catch (Exception ignored) {}
+
+                        return null;
+                    }));
+                }
+
+                if (gateway != 0) {
+                    try {
+                        InetAddress gw = InetAddress.getByAddress(
+                            new byte[] {
+                                (byte) (gateway >>> 24),
+                                (byte) (gateway >>> 16),
+                                (byte) (gateway >>> 8),
+                                (byte) gateway
+                            });
+
+                        if (gw.isReachable(250)) {
+                            JSONObject router = new JSONObject();
+                            router.put("ip", gatewayAddress);
+                            router.put("name", "Ağ geçidi / Router");
+                            router.put("type", "router");
+                            devices.put(router);
+                        }
+                    } catch (Exception ignored) {}
+                }
+
+                for (Future<JSONObject> future : futures) {
+                    try {
+                        JSONObject device =
+                            future.get(1500, TimeUnit.MILLISECONDS);
+
+                        if (device != null) devices.put(device);
+
+                    } catch (Exception ignored) {}
+                }
+
+                output.put("ok", true);
+                output.put("devices", devices);
+                output.put("count", devices.length());
+                output.put("scanLimited", hostCount >= 512);
+
+            } catch (Exception e) {
+                try {
+                    output.put("ok", false);
+                    output.put("error", e.getMessage());
+                } catch (Exception ignored) {}
+            } finally {
+                if (executor != null) executor.shutdownNow();
+            }
+
+            return output.toString();
+        }
+
+        private String intToIp(int value) {
+            return ((value >>> 24) & 255) + "." +
+                   ((value >>> 16) & 255) + "." +
+                   ((value >>> 8) & 255) + "." +
+                   (value & 255);
         }
     }
 }
