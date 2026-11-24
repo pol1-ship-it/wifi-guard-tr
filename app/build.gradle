@@ -13,4 +13,24 @@ android {
         versionCode 1
         versionName '1.0'
     }
+
+    signingConfigs {
+        release {
+            def ksPass = System.getenv('KEYSTORE_PASSWORD')
+            def keyPass = System.getenv('KEY_PASSWORD')
+            def aliasName = System.getenv('KEY_ALIAS')
+
+            storeFile file('release-key.jks')
+            storePassword ksPass
+            keyAlias aliasName
+            keyPassword keyPass
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+    }
 }
