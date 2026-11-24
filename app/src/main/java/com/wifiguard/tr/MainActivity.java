@@ -20,7 +20,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.net.InetAddress;
-import android.net.wifi.DhcpInfo;
+import android.net.DhcpInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.ConnectivityManager;
