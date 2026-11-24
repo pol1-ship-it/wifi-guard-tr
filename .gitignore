@@ -2,3 +2,5 @@
 # Release signing keys
 keystore/
 *.jks
+key.txt
+release-apk/
