@@ -144,6 +144,34 @@ button:disabled { opacity:.55; }
     padding:12px;background:#101b2b;border-radius:12px;
     border-left:3px solid var(--cyan);margin-top:12px;
 }
+
+/* Network detail modal */
+.item { cursor:pointer; }
+.item:active { transform:scale(.99); }
+.network-modal[hidden] { display:none !important; }
+.network-modal {
+ position:fixed; inset:0; z-index:30; display:flex;
+ align-items:center; justify-content:center;
+ padding:18px; background:rgba(2,8,18,.78);
+}
+.network-dialog {
+ width:100%; max-width:440px; max-height:85vh; overflow:auto;
+ background:#101c2e; border:1px solid var(--line);
+ border-radius:18px; padding:18px;
+}
+.network-dialog-head {
+ display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.network-dialog-head h3 { margin:0; overflow-wrap:anywhere; }
+.network-close { width:38px; min-width:38px; padding:8px; }
+.network-detail-row {
+ display:flex; justify-content:space-between; gap:12px;
+ padding:11px 0; border-bottom:1px solid var(--line);
+}
+.network-detail-row span:first-child { color:var(--muted); }
+.network-detail-row span:last-child { text-align:right; overflow-wrap:anywhere; }
+.network-detail-note { margin-top:12px; color:var(--muted); font-size:11px; line-height:1.6; }
+
 .bottom-nav {
     position:fixed;bottom:0;left:0;right:0;z-index:10;
     display:grid;grid-template-columns:repeat(5,1fr);
@@ -297,6 +325,26 @@ button:disabled { opacity:.55; }
             <div class="row"><span data-i18n="tip4">Ağ güncellemesi</span><span data-i18n="tip4v">Modem yazılımını güncel tut</span></div>
         </div>
     </section>
+
+    <div id="networkModal" class="network-modal" hidden
+         onclick="if(event.target===this)closeNetworkDetails()"
+         role="dialog" aria-modal="true" aria-labelledby="networkModalTitle">
+        <div class="network-dialog">
+            <div class="network-dialog-head">
+                <h3 id="networkModalTitle">Ağ ayrıntıları</h3>
+                <button class="network-close" onclick="closeNetworkDetails()" aria-label="Kapat">✕</button>
+            </div>
+            <div class="network-detail-row"><span>SSID</span><span id="detailSsid">--</span></div>
+            <div class="network-detail-row"><span>Sinyal</span><span id="detailSignal">--</span></div>
+            <div class="network-detail-row"><span>Sinyal kalitesi</span><span id="detailQuality">--</span></div>
+            <div class="network-detail-row"><span>BSSID / MAC</span><span id="detailBssid">--</span></div>
+            <div class="network-detail-row"><span>Bant</span><span id="detailBand">--</span></div>
+            <div class="network-detail-row"><span>Kanal</span><span id="detailChannel">--</span></div>
+            <div class="network-detail-row"><span>Frekans</span><span id="detailFrequency">--</span></div>
+            <div class="network-detail-row"><span>Güvenlik</span><span id="detailSecurity">--</span></div>
+            <div class="network-detail-note" id="detailCapabilities">--</div>
+        </div>
+    </div>
 </main>
 
 <nav class="bottom-nav">
@@ -477,6 +525,7 @@ noConnection:"لا يوجد اتصال Wi-Fi",noBridge:"واجهة Android غي�
 let currentLanguage = localStorage.getItem("wifiGuardLanguage") || "tr";
 let lastWifi = null;
 let lastNetworks = [];
+let displayNetworks = [];
 
 function t(key) {
     return (translations[currentLanguage] && translations[currentLanguage][key])
@@ -616,14 +665,16 @@ function renderNetworks(networks) {
     }
 
     const sorted = [...networks].sort((a,b) => Number(b.rssi) - Number(a.rssi));
-    list.innerHTML = sorted.map(n => {
+    displayNetworks = sorted;
+
+    list.innerHTML = sorted.map((n, index) => {
         const rssi = Number(n.rssi);
         const quality = rssi >= -60 ? "good" : rssi >= -75 ? "warn" : "bad";
         const caps = String(n.capabilities || "");
         const sec = /WEP/i.test(caps) ? t("weak") :
             /SAE|PSK|EAP|OWE/i.test(caps) ? t("strong") : t("open");
 
-        return '<div class="item">' +
+        return '<div class="item" role="button" tabindex="0" onclick="openNetworkDetails(' + index + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openNetworkDetails(' + index + ')}">' +
             '<div class="item-top"><div class="item-name">' +
             escapeHtml(n.ssid || t("hidden")) +
             '</div><span class="tag ' + quality + '">' + escapeHtml(rssi) + ' dBm</span></div>' +
@@ -635,6 +686,48 @@ function renderNetworks(networks) {
             '</div></div>';
     }).join("");
 }
+
+function openNetworkDetails(index) {
+    const n = displayNetworks[index];
+    if (!n) return;
+
+    const rssi = Number(n.rssi);
+    const quality = rssi >= -60 ? "Güçlü" : rssi >= -75 ? "Orta" : "Zayıf";
+    const caps = String(n.capabilities || "--");
+
+    let sec = "Açık veya tanımlanamayan";
+    if (/WEP/i.test(caps)) sec = "WEP (güvensiz)";
+    else if (/SAE/i.test(caps)) sec = "WPA3";
+    else if (/EAP/i.test(caps)) sec = "WPA/WPA2-Enterprise";
+    else if (/PSK/i.test(caps)) sec = "WPA/WPA2-Personal";
+    else if (/OWE/i.test(caps)) sec = "OWE";
+
+    const values = {
+        detailSsid: n.ssid || "Gizli ağ",
+        detailSignal: Number.isFinite(rssi) ? rssi + " dBm" : "--",
+        detailQuality: Number.isFinite(rssi) ? quality : "Bilinmiyor",
+        detailBssid: n.bssid || n.BSSID || "--",
+        detailBand: n.band || "--",
+        detailChannel: n.channel || "--",
+        detailFrequency: n.frequency ? n.frequency + " MHz" : "--",
+        detailSecurity: sec,
+        detailCapabilities: "Teknik güvenlik bilgisi: " + caps
+    };
+
+    Object.entries(values).forEach(([id, value]) => {
+        document.getElementById(id).textContent = value;
+    });
+
+    document.getElementById("networkModal").hidden = false;
+}
+
+function closeNetworkDetails() {
+    document.getElementById("networkModal").hidden = true;
+}
+
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") closeNetworkDetails();
+});
 
 function scanDevices() {
     const list = document.getElementById("deviceList");
